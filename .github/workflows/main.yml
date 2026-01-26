@@ -10,14 +10,15 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-fastapi
 
+permissions:
+  contents: write
+  packages: write
+  pages: write
+  id-token: write
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout repository
