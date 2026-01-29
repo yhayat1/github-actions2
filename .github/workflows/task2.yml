@@ -1,0 +1,64 @@
+name: Task 2 - Kind & Helm Deployment
+
+on:
+  push:
+    paths:
+      - 'github-actions2/task2/**'
+  workflow_dispatch:
+
+jobs:
+  kind-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Task 2 Image
+        run: |
+          docker build -t task2-app:latest github-actions2/task2/
+
+      - name: Create Kind Cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: kind
+
+      - name: Load Image into Kind
+        run: |
+          kind load docker-image task2-app:latest --name kind
+
+      - name: Install Helm Chart
+        run: |
+          helm install task2-release github-actions2/task2/app \
+            --set image.repository=task2-app \
+            --set image.tag=latest \
+            --set image.pullPolicy=Never
+
+      - name: Wait for Pods and Validate
+        run: |
+          echo "Waiting for pods to be ready..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=app --timeout=120s
+          kubectl wait --for=condition=ready pod -l app=postgres --timeout=120s
+          
+          echo "Final Pod Status:"
+          kubectl get pods
+          
+          # Check if all pods are Running
+          STATUS=$(kubectl get pods --no-headers | awk '{print $3}' | grep -v Running | wc -l)
+          if [ "$STATUS" -eq "0" ]; then
+            echo "All pods are Running!"
+          else
+            echo "Some pods are not Running."
+            kubectl get pods
+            exit 1
+          fi
+
+      - name: Run Integration Test Job
+        run: |
+          kubectl apply -f github-actions2/task2/test-job.yaml
+          
+          echo "Waiting for Job to complete..."
+          kubectl wait --for=condition=complete job/integration-test --timeout=60s
+          
+          echo "Job Logs:"
+          kubectl logs job/integration-test
+
