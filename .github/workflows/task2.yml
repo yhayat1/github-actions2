@@ -37,13 +37,15 @@ jobs:
       - name: Wait for Pods and Validate
         run: |
           echo "Waiting for pods to be created..."
-          sleep 10
+          sleep 15
           
           echo "Current Pods:"
           kubectl get pods
           
+          echo "Deployment Status (for debugging):"
+          kubectl describe deployments
+          
           echo "Waiting for pods to be ready..."
-          # Use a more generic label or check what's available
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=app --timeout=120s
           kubectl wait --for=condition=ready pod -l app=postgres --timeout=120s
           
