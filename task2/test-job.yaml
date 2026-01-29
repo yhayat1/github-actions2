@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: integration-test
+spec:
+  template:
+    spec:
+      containers:
+      - name: test
+        image: curlimages/curl:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            curl -v -X POST \
+              -H "Content-Type: application/json" \
+              -d '{"message": "Integration Test Success"}' \
+              http://task2-release-app:8000/write
+      restartPolicy: Never
+  backoffLimit: 2
