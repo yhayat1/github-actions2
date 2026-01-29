@@ -3,7 +3,7 @@ name: Task 2 - Kind & Helm Deployment
 on:
   push:
     paths:
-      - 'github-actions2/task2/**'
+      - 'task2/**'
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
 
       - name: Build Task 2 Image
         run: |
-          docker build -t task2-app:latest github-actions2/task2/
+          docker build -t task2-app:latest task2/
 
       - name: Create Kind Cluster
         uses: helm/kind-action@v1.10.0
@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Helm Chart
         run: |
-          helm install task2-release github-actions2/task2/app \
+          helm install task2-release task2/app \
             --set image.repository=task2-app \
             --set image.tag=latest \
             --set image.pullPolicy=Never
@@ -54,11 +54,10 @@ jobs:
 
       - name: Run Integration Test Job
         run: |
-          kubectl apply -f github-actions2/task2/test-job.yaml
+          kubectl apply -f task2/test-job.yaml
           
           echo "Waiting for Job to complete..."
           kubectl wait --for=condition=complete job/integration-test --timeout=60s
           
           echo "Job Logs:"
           kubectl logs job/integration-test
-
