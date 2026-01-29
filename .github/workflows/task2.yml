@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'task2/**'
+      - '.github/workflows/task2.yml'
   workflow_dispatch:
 
 jobs:
